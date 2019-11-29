@@ -2,7 +2,7 @@ public class ProjectCalloutService {
     //??Invocable method so it can be used in Process Builder
 	@InvocableMethod(label='Insert Opportunity' description='Inserts the opportunity')
 	public static void postOpportunityToPMS(List<id> oppList){
-        List<opportunity> oppidlist=[select id from opportunity where id in :opplist Limit 1];
+        List<opportunity> oppidlist=[select id,name,CloseDate,Amount from opportunity where id in :opplist Limit 1];
         ID jobID = System.enqueueJob(new QueueablePMSCall(oppidlist));
     }
     //Key-value pair of opportunity data to be converted in JSON
@@ -20,11 +20,10 @@ public class ProjectCalloutService {
         Opportunity opp=new Opportunity();
         opp=oppidlist[0];
         ServiceTokens__c token= ServiceTokens__c.getValues('ProjectServiceToken');//Servicetoken object Data taken from Custom Settings
-        string finalToken=token.Token__c;//get string data from token field
         Http http = new Http();
         HttpRequest request = new HttpRequest();
         request.setMethod('POST');
-        request.setEndpoint('callout:ProjectService/'+ finalToken); //ProjectService Connected App in App Manager(trailhead)
+        request.setEndpoint('callout:ProjectService/'+ token); //ProjectService Connected App in App Manager(trailhead)
         request.setHeader( 'Content-Type', 'application/json' );
         String body=JSON.serialize(mapData(opp)); //convert map to JSON
         request.setBody(body);
