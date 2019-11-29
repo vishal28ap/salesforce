@@ -36,10 +36,10 @@ public class ProjectCalloutService {
         }
         update opp;
     }
-    //Queable Inner Class. First method(constructor) should always be same as class name and is called in system.enqueue.
+    //Queable Inner Class. First method(constructor) should always be same as class name that is called in system.enqueue job
     //Database.AllowsCallouts used to allow API callouts
     public class QueueablePMSCall implements Queueable,Database.AllowsCallouts{
-		private List<Opportunity> oppidlist; //declare the list as private to class to be called
+	private List<Opportunity> oppidlist; //declare the list as private to class to be called
         public QueueablePMSCall(List<opportunity> oppidlist) {
         	this.oppidlist=oppidlist; //declare input parameter as local variable
     	}
