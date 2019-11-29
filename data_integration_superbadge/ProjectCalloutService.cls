@@ -1,44 +1,50 @@
 public class ProjectCalloutService {
-    //Complete the implementation for business and callout logic
+    //??Invocable method so it can be used in Process Builder
 	@InvocableMethod(label='Insert Opportunity' description='Inserts the opportunity')
 	public static void postOpportunityToPMS(List<id> oppList){
         List<opportunity> oppidlist=[select id from opportunity where id in :opplist Limit 1];
         ID jobID = System.enqueueJob(new QueueablePMSCall(oppidlist));
     }
-    
+    //Key-value pair of opportunity data to be converted in JSON
+    public static Map<String,Object> mapData(opportunity opp){
+        Map<String,Object> mapdata = new Map<String,Object>();
+        mapdata.put('opportunityId',opp.Id);
+        mapdata.put('opportunityName',opp.Name);
+        mapdata.put('accountName',[select Account.name from opportunity where id=:opp.Id]);
+        mapdata.put('closeDate',opp.CloseDate);
+        mapdata.put('amount',opp.Amount);
+        return mapdata;
+    }
+    //POST data to external service in JSON
+    public static void postPMS(List<Opportunity> oppidlist){
+        Opportunity opp=new Opportunity();
+        opp=oppidlist[0];
+        ServiceTokens__c token= ServiceTokens__c.getValues('ProjectServiceToken');//Servicetoken object Data taken from Custom Settings
+        string finalToken=token.Token__c;//get string data from token field
+        Http http = new Http();
+        HttpRequest request = new HttpRequest();
+        request.setMethod('POST');
+        request.setEndpoint('callout:ProjectService/'+ finalToken); //ProjectService Connected App in App Manager(trailhead)
+        request.setHeader( 'Content-Type', 'application/json' );
+        String body=JSON.serialize(mapData(opp)); //convert map to JSON
+        request.setBody(body);
+        HttpResponse response = http.send(request);
+        if(response.getStatusCode()==201){
+           	opp.stagename='Submitted Project';
+        }
+        else{
+           	opp.stagename='Resubmit Project';
+        }
+        update opp;
+    }
+    //Queable Inner Class. First method(constructor) should always be same as class name and is called in system.enqueue. Database.AllowsCallouts used to allow API callouts
     public class QueueablePMSCall implements Queueable,Database.AllowsCallouts{
-		private List<Opportunity> oppidlist;
-        Public Map<String,Object> listr = new Map<String,Object>();
+		private List<Opportunity> oppidlist; //declare the list as private to class to be called
         public QueueablePMSCall(List<opportunity> oppidlist) {
-        	Opportunity opp = new Opportunity();
-        	opp=oppidlist[0];
-        	listr.put('opportunityId',opp.Id);
-        	listr.put('opportunityName',opp.Name);
-        	listr.put('accountName',[select Account.name from opportunity where id=:opp.Id]);
-        	listr.put('closeDate',opp.CloseDate);
-        	listr.put('amount',opp.Amount);   
+        	this.oppidlist=oppidlist;
     	}
 		public void execute(QueueableContext context) {
-            ServiceTokens__c token= ServiceTokens__c.getValues('ProjectServiceToken');
-            string finalToken=token.Token__c;
-        	Http http = new Http();
-        	HttpRequest request = new HttpRequest();
-        	request.setMethod('POST');
-        	request.setEndpoint('callout:ProjectService/'+ finalToken); //ProjectService external app in Amm Manager(trailhead)
-        	request.setHeader( 'Content-Type', 'application/json' );
-        	String body=JSON.serialize(listr);
-        	request.setBody(body);
-        	HttpResponse response = http.send(request);
-        	Opportunity opp1 = new Opportunity();
-        	opp1=oppidlist[0];
-        	if(response.getStatusCode()==201){
-            	opp1.stagename='Submitted Project';
-            	upsert opp1;
-        	}
-        	else{
-            	opp1.stagename='Resubmit Project';
-            	upsert opp1;
-        	}
+            postPMS(oppidlist);
 		}
     }
 }
