@@ -40,7 +40,7 @@ public class ProjectCalloutService {
     public class QueueablePMSCall implements Queueable,Database.AllowsCallouts{
 		private List<Opportunity> oppidlist; //declare the list as private to class to be called
         public QueueablePMSCall(List<opportunity> oppidlist) {
-        	this.oppidlist=oppidlist;
+        	this.oppidlist=oppidlist; //declare input parameter as local variable
     	}
 		public void execute(QueueableContext context) {
             postPMS(oppidlist);
