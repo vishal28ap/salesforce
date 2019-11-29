@@ -1,5 +1,5 @@
 public class ProjectCalloutService {
-    //??Invocable method so it can be used in Process Builder
+        //Invocable method so it can be used in Process Builder
 	@InvocableMethod(label='Insert Opportunity' description='Inserts the opportunity')
 	public static void postOpportunityToPMS(List<id> oppList){
         	List<opportunity> oppidlist=[select id,name,CloseDate,Amount from opportunity where id in :opplist Limit 1];
