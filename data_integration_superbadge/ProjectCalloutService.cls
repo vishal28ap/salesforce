@@ -8,10 +8,10 @@ public class ProjectCalloutService {
     //Key-value pair of opportunity data to be converted in JSON
     public static Map<String,Object> mapData(opportunity opp){
         Map<String,Object> mapdata = new Map<String,Object>();
-        mapdata.put('opportunityId',opp.Id);
-        mapdata.put('opportunityName',opp.Name);
-        mapdata.put('accountName',[select Account.name from opportunity where id=:opp.Id]);
-        mapdata.put('closeDate',opp.CloseDate);
+        mapdata.put('opportunityId',string.valueOf(opp.Id));
+        mapdata.put('opportunityName',string.valueOf(opp.Name));
+        mapdata.put('accountName', String.valueOf([select Account.name from opportunity where id=:opp.Id]) );
+        mapdata.put('closeDate', String.valueOf(opp.CloseDate.year())+'-'+String.valueOf(opp.CloseDate.month())+'-'+String.valueOf(opp.CloseDate.day()));
         mapdata.put('amount',opp.Amount);
         return mapdata;
     }
