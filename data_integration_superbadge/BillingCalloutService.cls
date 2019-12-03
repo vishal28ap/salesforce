@@ -3,21 +3,19 @@ global with sharing class BillingCalloutService {
     @future(callout=true)
     webservice static void  callBillingService(List<id> proList) {
         Project__c p1=new Project__c();
-        Project__c p2=new Project__c();
         List<Project__c> projectList=new List<Project__c>();
         List<Project__c> projectList1=new List<Project__c>();
         for (Id i:prolist){
-            p1=[select ProjectRef__c from Project__c where id=:i];
+            p1=[select Billable_Amount__c,ProjectRef__c from Project__c where id=:i];
             projectList.add(p1);
-            p2=[select Billable_Amount__c from Project__c where id=:i];
-            projectList1.add(p2);
         }
+        Project__c projectnew=projectList[0];
         ServiceCredentials__c username=ServiceCredentials__c.getvalues('Username__c');
         String un=String.valueOf(username);
         ServiceCredentials__c password=ServiceCredentials__c.getvalues('Password__c');
         String pw=String.valueOf(password);
-        String projectid=String.valueOf(projectList[0]);
-        Double billamt=Double.valueOf(projectList[0]);
+        String projectid=String.valueOf(projectnew.Id);
+        Double billamt=Double.valueOf(projectnew.Billable_Amount__c);
         BillingServiceProxy.project project = new BillingServiceProxy.project();
         project.projectid = projectid;
         project.billAmount = billamt;
@@ -28,11 +26,12 @@ global with sharing class BillingCalloutService {
         String response = invoiceCall.billProject(project);
         List<Project__c> projects = new List<Project__c>();
         if(response!=null && response.equalsIgnoreCase('OK')){
-            projects = [Select Id, Status__c From Project__c Where ProjectRef__c = :projectid];
+            projects = [Select Status__c From Project__c  where id=:p1.Id];
+            for(Project__c prjt : projects){
+                prjt.Status__c = 'Billed';
+                update prjt;
+            }
         }
-        if (projects.size()>0){
-            projects[0].Status__c = 'Billed';
-            update projects;
-        }
+
     }
 }
