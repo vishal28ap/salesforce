@@ -6,7 +6,7 @@ trigger ProjectTrigger on Project__c (after update) {
             Project__c proj=new Project__c();
             Set<Id> ids = (new Map<Id, Project__c>([SELECT Id FROM Project__c where id=:p.Id limit 1])).keySet();
             prolist.addAll(ids);
+            BillingCalloutService.callBillingService(prolist);
         }
-    }
-    BillingCalloutService.callBillingService(prolist);
+    }  
 }
