@@ -34,3 +34,5 @@ public with sharing class WarehouseCalloutService {
         }
     }
 }
+
+//Note:- Please run it in anonymous window once in form of Class.method() i.e.   WarehouseCalloutService.runWarehouseEquipmentSync()
